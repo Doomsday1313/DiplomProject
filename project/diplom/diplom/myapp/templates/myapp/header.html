@@ -1,0 +1,119 @@
+<div class="row">
+    <div class="col" id="innInput">
+            <form class="form" id="searchForm">
+                <label for="inn">Введите ИНН организации</label>
+                <input name="inn" type="number" class="form-control w-75" id="inputINN">
+                <div class="mb-3 mt-1">
+                    <button id="makeSearch" type="submit" class="btn btn-dark">Поиск</button>
+                    <button id="toggle-filters" type="button" class="btn btn-dark">Изменить критерии</button>
+                </div>
+            </form>
+        <script>
+            $("#toggle-filters").click(function(){
+                $("#filtersInput").toggle(100);
+                $("#resultField").toggle(100);
+            })
+
+            $("#searchForm").submit(function(e){
+                e.preventDefault();
+                $("#resultField").hide(100);
+                $("#filtersInput").hide(100);
+
+                $.ajax({
+                    url: "/search/",
+                    method: "GET",
+                    data: {inn: $("#inputINN").val()},
+                    success: function(data){
+                        $("#resultField").html(data);
+                        countScores();
+                        $("#resultField").show(200);
+                    },
+                    error: function(data, status, error){
+                        $("#resultField").html("<div class=\"text-danger\">" + data.responseText + "</div>").show(100);
+                    }
+                });
+            });
+        </script>
+    </div>
+    <div class="col">
+        {% if user.is_authenticated %}
+        <h2 class="float-right mt-3">Добро пожаловать {{user.username}}!</h2>
+        <div class="float-right inline-block align-middle">
+            <button id="history" class="btn btn-dark">История запросов</button>
+            <button id="logout" class="btn btn-dark">Выйти</button>
+        </div>
+            <script>
+                $("#history").on("click", function(e){
+                    $("#resultField").hide(100);
+                    $("#filtersInput").hide(100);
+
+                    $.ajax({
+                        url: "/history/",
+                        method: "GET",
+                        success: function(data){
+                            $("#resultField").html(data).show(100);
+                        },
+                        error: function(data, status, error){
+                            $("#resultField").html(data.responseText).show(100);
+                        }
+                    });
+                });
+
+                $("#logout").on("click", function(e){
+                    $("#resultField").hide(100);
+                    $("#saveCriteria").hide();
+
+                    $.ajax({
+                        url: "/logout/",
+                        method: "GET",
+                        success: function(data){
+                            $("#filtersInput").show(100);
+                            $("#header").fadeTo(100, 0).html(data).fadeTo(100, 1);
+                        },
+                        error: function(data, status, error){
+                            $("#resultField").html(data.responseText).show(100);
+                        }
+                    });
+                });
+            </script>
+        {% else %}
+        <div class="float-right mt-5">
+            <button id="register" class="btn btn-dark">Зарегистрироваться</button>
+            <button id="login" class="btn btn-dark">Войти</button>
+        </div>
+            <script>
+                $("#register").on("click", function(e){
+                    $("#resultField").hide(100);
+                    $("#filtersInput").hide(100);
+
+                    $.ajax({
+                        url: "/register/",
+                        method: "GET",
+                        success: function(data){
+                            $("#resultField").html(data).show(100);
+                        },
+                        error: function(data, status, error){
+                            $("#resultField").html(data.responseText).show(100);
+                        }
+                    });
+                });
+
+                $("#login").on("click", function(e){
+                    $("#resultField").hide(100);
+                    $("#filtersInput").hide(100);
+
+                    $.ajax({
+                        url: "/login/",
+                        method: "GET",
+                        success: function(data){
+                            $("#resultField").html(data).show(100);
+                        },
+                        error: function(data, status, error){
+                            $("#resultField").html(data.responseText).show(100);
+                        }
+                    });
+                });
+            </script>
+        {% endif %}
+    </div>
+</div>

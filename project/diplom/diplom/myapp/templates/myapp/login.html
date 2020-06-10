@@ -1,0 +1,38 @@
+<form id="submitLogin" class="form-group">
+    <div class="col-sm-5">
+        <label for="name">Имя</label>
+        <input class="form-control" type="text" name="name">
+    </div>
+    <div class="col-sm-5">
+        <label for="password">Пароль</label>
+        <input class="form-control" type="password" name="password">
+    </div>
+    <div class="col-sm-5 mt-2">
+        <button type="submit" class="btn btn-dark">Принять</button>
+    </div>
+    {% csrf_token %}
+</form>
+<script>
+    $("#submitLogin").submit(function(e){
+        e.preventDefault();
+
+        var formData = $(this).serialize();
+
+        $.ajax({
+            url: "/login/",
+            method: "POST",
+            data: formData,
+            success: function(data){
+                $("#resultField").hide(100);
+                updateCriteria();
+                $("#saveCriteria").show();
+                $("#filtersInput").show(100);
+                $("#header").fadeTo(100, 0).html(data).fadeTo(100, 1);
+            },
+            error: function(data, status, error){
+                $("#resultField").append("<div class=\"text-danger\">" + data.responseText + "</div>").show(100);
+                $(".text-danger").fadeTo(3000, 0, function(){$(this).remove();});
+            }
+        });
+    });
+</script>

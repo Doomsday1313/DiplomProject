@@ -1,0 +1,39 @@
+{% for pg_num, page in orgs.items %}
+    <table data-page="{{pg_num}}" class="table table-striped" {% if pg_num != '1' %}style="display: none;"{% else %} data-pg-active="true"{% endif %}>
+        {% for org in page %}
+            <tr>
+                <td>{{org.name}}</td>
+                <td>{{org.inn}}</td>
+                <td>
+                    <button data-inn="{{org.inn}}" class="btn btn-dark showHistory">Посмотреть</button>
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
+{% endfor %}
+{% for pg_num in orgs.keys %}
+    <button class="pgination btn btn-dark">{{pg_num}}</button>
+{% endfor %}
+<script>
+$(".showHistory").on("click", function(e){
+    $("#resultField").hide(100);
+    $("#filtersInput").hide(100);
+
+    $.ajax({
+        url: "/history?inn=" + $(this).attr("data-inn"),
+        method: "GET",
+        success: function(data){
+            countScores();
+            $("#resultField").html(data).show(100);
+        }
+    });
+});
+$(".pgination").on("click", function(e){
+    pg_num = $(this).text();
+
+    if ($("table[data-pg-active]").attr("data-page") != pg_num) {
+        $("table[data-pg-active]").hide(100).removeAttr("data-pg-active");
+        $("table[data-page=" + pg_num + "]").show(100).attr("data-pg-active", "true")
+    }
+});
+</script>

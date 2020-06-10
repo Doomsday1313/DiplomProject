@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Поиск по организациям</title>
+    {% include 'myapp/libraries.html' %}
+    <style>
+        .slider {
+            width: 60%;
+            display: inline-block;
+        }
+        .slider-value {
+            border: 1px solid gray;
+            border-radius: 5px;
+            background-color: #d3d9e3;
+            font-size: 18pt;
+            padding: 6px;
+            margin-left: 20px;
+        }
+        .btn:focus {
+            outline: none;
+            box-shadow: none;
+        }
+    </style>
+    <script>
+    function countScores(){
+        s_vals = $(".slider-value");
+        sum_score = 0;
+        max_sum_possible = 0;
+        counter = 0;
+
+        good = "<img src=\"/static/icons/good_sm1.png\">";
+        average = "<img src=\"/static/icons/average_sm1.png\">";
+        bad = "<img src=\"/static/icons/bad_sm1.png\">";
+
+        for (var i = 0; i < s_vals.length; i++) {
+            curr_val = $(s_vals[i]).attr("id");
+            field = $(`td[data-kfname="${curr_val}"]`);
+
+            coef = parseInt($(s_vals[i]).text());
+            abs_score = parseInt($(field).text());
+
+            score = abs_score * coef;
+
+            if (!isNaN(score) && coef != 0) {
+                sum_score += score;
+                max_sum_possible += coef;
+                counter++;
+
+                if (abs_score > 0)
+                    $(field).html(good);
+                else if (abs_score == 0)
+                    $(field).html(average);
+                else
+                    $(field).html(bad);
+
+                $(field).removeAttr("data-kfname");
+            }
+        }
+        $("td[data-kfname]").parent().remove();
+
+        if (counter > 0 && !isNaN(sum_score))
+            if (sum_score > max_sum_possible * 0.5)
+                $("#resultField").append("<h2>Общая оценка: " + good + "</h2>");
+            else if (sum_score >= 0)
+                $("#resultField").append("<h2>Общая оценка: " + average + "</h2>");
+            else
+                $("#resultField").append("<h2>Общая оценка: " + bad + "</h2>");
+    };
+
+    function updateCriteria(data){
+        $.ajax({
+            url: "/get_criteria/",
+            method: "GET",
+            success: function(data){
+                if (data) {
+                    criteria = JSON.parse(data);
+
+                    $.each(criteria, function(index, value){
+                        $("span#" + index).text(value);
+                        $("span#" + index).prev().slider({max: 10, min: 0, value: value});
+                    });
+                }
+                else
+                    $(".slider").each(function(index){
+                        $(this).slider({max: 10, min: 0, value: 5});
+                        $(this).next().text(5);
+                    });
+            },
+            error: function(data, status, error){
+                console.log(data.responseText);
+                $(".slider").slider({max: 10, min: 0, value: 5});
+            }
+        });
+    };
+
+    $(document).ready(function(){
+        updateCriteria();
+
+        $(".slider").on("slide", function(e, ui){
+            $(this).next().text(ui.value);
+        });
+
+        $("#saveCriteria").on("click", function(e){
+            criteriaData = {};
+
+            $(".slider-value").each(function(index){
+                criteriaData[$(this).attr("id")] = $(this).text();
+            });
+
+            $.ajax({
+                url: "/save_criteria/",
+                method: "GET",
+                data: criteriaData,
+                success: function(data){
+                    $("#saveCriteria").parent().append("<span class=\"text-success\">" + data + "</div>");
+                    $("span.text-success").fadeTo(3000, 0, function(){$(this).remove()});
+                },
+                error: function(data, status, error){
+                    $("#saveCriteria").parent().append("<span class=\"text-danger\">" + data.responseText + "</div>");
+                    $("span.text-danger").fadeTo(3000, 0, function(){$(this).remove()});
+                }
+            });
+        });
+    });
+</script>
+</head>
+<body>
+<div id="header" class="container border-bottom mb-4">
+    {% include 'myapp/header.html' with user=user %}
+</div>
+<div class="container" id="filtersInput">
+    <div class="row">
+        <div class="col">
+            <h3>Выберите важность критериев</h3>
+        </div>
+        <div class="col">
+            <button class="btn btn-dark" id="saveCriteria" {% if not user.is_authenticated %}style="display:none"{% endif %}>Сохранить критерии</button>
+        </div>
+    </div>
+    <div class="mt-3">
+        <div class="row">
+            <div class="col">
+                Коэффициент автономии<br><div class="slider"></div> <span id="avtonom" class="slider-value">5</span>
+            </div>
+            <div class="col">
+                Коэффициент обеспеченности собственными оборотными средствами<br><div class="slider"></div> <span id="sosobesp" class="slider-value">5</span>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col">
+                Коэффициент покрытия инвестиций<br><div class="slider"></div> <span id="pokrinvest" class="slider-value">5</span>
+            </div>
+            <div class="col">
+                Коэффициент текущей ликвидности<br><div class="slider"></div> <span id="CurrentRatio" class="slider-value">5</span>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col">
+                Коэффициент быстрой ликвидности<br><div class="slider"></div> <span id="QuickRatio" class="slider-value">5</span>
+            </div>
+            <div class="col">
+                Коэффициент абсолютной ликвидности<br><div class="slider"></div> <span id="CashRatio" class="slider-value">5</span>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col">
+                Рентабельность активов<br><div class="slider"></div> <span id="ROA" class="slider-value">5</span>
+            </div>
+            <div class="col">
+                Норма чистой прибыли<br><div class="slider"></div> <span id="ProfitMargin" class="slider-value">5</span>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col">
+                Рентабельность продаж<br><div class="slider"></div> <span id="GrossMargin" class="slider-value">5</span>
+            </div>
+            <div class="col">
+                Коэффициент мобильности имущества<br><div class="slider"></div> <span id="mobilos" class="slider-value">5</span>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col">
+                Коэффициент обеспеченности запасов<br><div class="slider"></div> <span id="obesmpz" class="slider-value">5</span>
+            </div>
+            <div class="col">
+                Коэффициент покрытия процентов к уплате<br><div class="slider"></div> <span id="ICR" class="slider-value">5</span>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col">
+                Рентабельность собственного капитала<br><div class="slider"></div> <span id="ROE" class="slider-value">5</span>
+            </div>
+            <div class="col">
+                Фондоотдача<br><div class="slider"></div> <span id="fondootd" class="slider-value">5</span>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col">
+                Оборачиваемость активов<br><div class="slider"></div> <span id="AssetTurnover" class="slider-value">5</span>
+            </div>
+            <div class="col">
+                Оборачиваемость дебиторской задолженности<br><div class="slider"></div> <span id="ReceivablesTurnover" class="slider-value">5</span>
+            </div>
+        </div><br><br>
+    </div>
+</div>
+<div id="resultField" class="container">
+    {% if result %}
+        {% include 'myapp/resultTable.html' with org=result %}
+    {% endif %}
+</div>
+</body>
+</html>

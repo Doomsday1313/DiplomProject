@@ -1,0 +1,87 @@
+<h2>Общая информация</h2>
+<table class="table table-borderless table-sm">
+        {% for key, value in org.info.items %}
+            <tr>
+                <td><b>{{value.1}}</b></td>
+                <td>
+                    {% if value.0 == None %}
+                        {{'Нет данных'}}
+                    {% else %}
+                        {% if value.0 == 'ul' %}
+                            {{'Юридическое лицо'}}
+                        {% elif value.0 == 'ip' %}
+                            {{'Физическое лицо'}}
+                        {% else %}
+                            {{value.0}}
+                        {% endif %}
+                    {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+        {% for key, value in org.addinfo.items %}
+            <tr class="addinfo-row" style="display: none;">
+                <td><b>{{value.1}}</b></td>
+                <td>
+                    {% if value.0 == None %}
+                        {{'Нет данных'}}
+                    {% else %}
+                            {{value.0}}
+                    {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+    <button id="toggle-info" class="btn-sm btn-light">Показать/скрыть дополнительную информацию</button>
+</table>
+<h2>Финансовая информация</h2>
+<table class="table table-striped">
+    <thead class="thead-dark">
+        <tr>
+            <th>Год</th>
+            <th>Выручка, руб</th>
+            <th>Прибыль, руб</th>
+            <th>Основные средства, руб</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for year, values in org.fininfo.items %}
+            <tr>
+                <td><b>{{year}}</b></td>
+                {% for val in values %}
+                    {% if val is not None %}
+                        <td>{{val}}</td>
+                    {% else %}
+                        <td>Нет данных</td>
+                    {% endif %}
+                {% endfor %}
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+<h2>Критерии</h2>
+{% if not org.criteria == 'no info' %}
+    <table class="table table-striped">
+        <thead class="thead-dark">
+            <tr>
+                <th>Показатель</th>
+                <th>Значение</th>
+                <th>В среднем по отрасли</th>
+                <th>Оценка</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for key, val in org.criteria.items %}
+                <tr>
+                    <td>{{val.title}}</td>
+                    <td>{{val.value}}</td>
+                    <td>{{val.industry_mediana}}</td>
+                    <td data-kfname="{{key}}">{{val.industry_rank}}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    Для данной компании данные по критериям не найдены
+{% endif %}
+<script>
+    $("#toggle-info").click(function(){$(".addinfo-row").toggle(100)});
+</script>
